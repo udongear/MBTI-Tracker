@@ -1,0 +1,98 @@
+# MBTI Tracker
+
+A single-page, no-build web app for tracking the MBTI types of people in your
+life — friends, family, coworkers, romantic interests — with both a
+spreadsheet-style list and a visual 16-type grid. All data is kept locally in
+the browser; there is no server or account system.
+
+## Running it
+
+There's nothing to install or build. Just open [`index.html`](index.html) in
+a browser (double-click it, or right-click → Open with). An internet
+connection is needed the first time it loads, since the emoji picker library
+is pulled from a CDN (`cdn.jsdelivr.net`) — everything else works offline.
+
+## Features
+
+### List view
+
+- A spreadsheet-style table with a column for every field: Emoji, Name,
+  MBTI, Status, Gender, Relationship, and Sub Category.
+- **Click any column header** (except Status) to sort by it; click again to
+  reverse direction. MBTI, Status, and Relationship sort by their natural
+  order (e.g. ISTJ → ENTJ) rather than alphabetically — Sub Category follows
+  the same pattern.
+- **Search box** filters by name as you type.
+- **+ Add Entry** opens a popup form (Emoji picker, Name, MBTI, Status,
+  Gender, Relationship, Sub Category) for adding a new person.
+- Each row has ✏️ (edit — opens the same popup, pre-filled) and 🗑️
+  (delete, with a confirmation prompt) actions.
+
+### Grid view
+
+- All 16 MBTI types laid out in a 4×4 grid, each split into a Male (left)
+  and Female (right) column, with every recorded person shown as their
+  emoji icon in that type/gender's slot.
+- Hovering an icon shows the person's name and Sub Category (or Relationship,
+  if no Sub Category is set).
+- Clicking an icon opens the same Add/Edit popup as the List view, so you
+  can edit an entry without leaving the grid.
+- **Clicking a type's header** (e.g. "INTJ — Architect") opens a detail
+  popup for that type:
+  - Male/female avatar images (see [Avatars](#avatars) below).
+  - A list of every recorded member of that type.
+  - A short, fixed **Stereotypes** list (three descriptors per type).
+  - An **Observations** list — starts empty and is meant to be built up
+    over time as you research each type; add a bullet with the input box,
+    remove one with its ✕. This is stored separately from your entries and
+    persists across visits.
+
+## Data & storage
+
+Everything is saved in the browser's `localStorage` — nothing leaves your
+machine, and nothing is shared between browsers/devices. Relevant keys:
+
+| Key | What it holds |
+|---|---|
+| `mbtiViewer.entries` | Your list of people. |
+| `mbtiViewer.dataVersion` | A marker used to (re)seed `mbtiViewer.entries` with the built-in starter dataset in [`script.js`](script.js) the first time the app runs, or after a deliberate reset (see below). |
+| `mbtiViewer.observations` | Your per-type Observations bullets from the Grid detail popup. |
+
+**Clearing your data:** clearing the site's storage (e.g. via browser dev
+tools → Application → Local Storage, or a private/incognito window) resets
+entries back to the seed dataset and clears all Observations.
+
+**Resetting to a fresh seed:** the `DATA_VERSION` constant near the top of
+[`script.js`](script.js) controls this. Bumping its value wipes whatever's
+currently in `mbtiViewer.entries` and replaces it with the `DEFAULT_ENTRIES`
+array in that same file, the next time the page loads. This was used once to
+load an initial dataset — normal use (adding/editing/deleting through the
+UI) never touches it.
+
+## Avatars
+
+The Grid detail popup looks for avatar images in [`imgs/`](imgs) named:
+
+```
+<N>) <CODE> <M|F>.png
+```
+
+e.g. `4) INTJ M.png`, `4) INTJ F.png` — where `<N>` is the type's 1-based
+position in the fixed order ISTJ, ISFJ, INFJ, INTJ, ISTP, ISFP, INFP, INTP,
+ESTP, ESFP, ENFP, ENTP, ESTJ, ESFJ, ENFJ, ENTJ (this is the `MBTI_TYPES`
+array in [`script.js`](script.js)). Keep this naming pattern if you replace
+or add avatar images.
+
+## Project structure
+
+```
+index.html   Markup: List view, Grid view, Add/Edit modal, MBTI detail modal
+style.css    All styling (dark purple/black theme, layout, modal styles)
+script.js    All behavior: data model, rendering, sorting, modals, storage
+imgs/        Avatar images (per MBTI type/gender) + favicon
+```
+
+There's no framework, bundler, or package manager involved — just three
+plain files plus the one CDN-loaded library
+([`emoji-picker-element`](https://github.com/nolanlawson/emoji-picker-element))
+for the emoji picker in the Add/Edit form.

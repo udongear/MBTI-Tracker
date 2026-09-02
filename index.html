@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBTI Viewer</title>
+<link rel="icon" type="image/png" href="imgs/fav.png">
+<link rel="stylesheet" href="style.css">
+<script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="topbar">
+    <h1>MBTI Viewer</h1>
+
+    <div class="mode-toggle" role="tablist" aria-label="View mode">
+      <button id="listModeBtn" class="mode-btn active" role="tab" aria-selected="true">📋 List</button>
+      <button id="gridModeBtn" class="mode-btn" role="tab" aria-selected="false">🔳 Grid</button>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ============ LIST MODE ============ -->
+    <section id="listView" class="view">
+
+      <div class="list-controls">
+        <button type="button" id="openAddEntryBtn" class="primary-btn">+ Add Entry</button>
+        <input type="search" id="searchBox" placeholder="Search by name…">
+        <span id="entryCount" class="entry-count"></span>
+      </div>
+
+      <div class="table-scroll">
+        <table class="entry-table">
+          <thead>
+            <tr>
+              <th class="col-emoji"></th>
+              <th class="sortable" data-sort="name">Name</th>
+              <th class="sortable" data-sort="mbti">MBTI</th>
+              <th>Status</th>
+              <th class="sortable" data-sort="gender">Gender</th>
+              <th class="sortable" data-sort="relationship">Relationship</th>
+              <th class="sortable" data-sort="subCategory">Sub Category</th>
+              <th class="col-actions"></th>
+            </tr>
+          </thead>
+          <tbody id="entryList"></tbody>
+        </table>
+      </div>
+
+    </section>
+
+    <!-- ============ GRID MODE ============ -->
+    <section id="gridView" class="view hidden">
+      <div class="grid-legend">
+        <span class="legend-item"><span class="swatch male-swatch"></span> Male</span>
+        <span class="legend-item"><span class="swatch female-swatch"></span> Female</span>
+        <span class="legend-hint">Click an icon to edit that entry · click a type name for details</span>
+      </div>
+      <div id="mbtiGrid" class="mbti-grid"></div>
+    </section>
+
+  </main>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <!-- ============ ADD / EDIT ENTRY MODAL ============ -->
+  <div id="entryModal" class="modal-overlay hidden">
+    <div class="modal-card entry-modal-card" role="dialog" aria-modal="true" aria-labelledby="entryModalTitle">
+      <button type="button" id="entryModalCloseBtn" class="modal-close" aria-label="Close">✕</button>
+
+      <div class="modal-header">
+        <h2 id="entryModalTitle">Add Entry</h2>
+      </div>
+
+      <form id="entryForm">
+        <input type="hidden" id="entryId" value="">
+
+        <div class="form-grid">
+          <label class="field field-small">
+            <span>Emoji Icon</span>
+            <div class="emoji-field">
+              <button type="button" id="emojiButton" class="emoji-btn" aria-haspopup="true" aria-expanded="false">❓</button>
+              <input type="hidden" id="emoji">
+              <emoji-picker id="picker" class="emoji-picker-popup"></emoji-picker>
+            </div>
+          </label>
+
+          <label class="field field-medium">
+            <span>Name</span>
+            <input type="text" id="name" placeholder="-" required>
+          </label>
+
+          <label class="field field-wide">
+            <span>MBTI</span>
+            <select id="mbti" required></select>
+          </label>
+
+          <label class="field field-medium">
+            <span>Status</span>
+            <select id="status" required>
+              <option value="">-</option>
+              <option value="Confirmed">Confirmed</option>
+              <option value="AI Confirmed">AI Confirmed</option>
+              <option value="Pending">Pending</option>
+              <option value="Speculated">Speculated</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+          </label>
+
+          <label class="field field-small">
+            <span>Gender</span>
+            <select id="gender" required>
+              <option value="">-</option>
+              <option value="M">M</option>
+              <option value="F">F</option>
+            </select>
+          </label>
+
+          <label class="field field-wide">
+            <span>Relationship</span>
+            <select id="relationship" required>
+              <option value="">-</option>
+              <option value="Partner/Ex">Partner/Ex</option>
+              <option value="Romantic Interest">Romantic Interest</option>
+              <option value="Friend">Friend</option>
+              <option value="Coworker">Coworker</option>
+              <option value="Family">Family</option>
+              <option value="Self">Self</option>
+            </select>
+          </label>
+
+          <label class="field field-medium">
+            <span>Sub Category</span>
+            <select id="subCategory">
+              <option value="">-</option>
+              <option value="JW Pre-Covid">JW Pre-Covid</option>
+              <option value="JW Post-Covid">JW Post-Covid</option>
+              <option value="Rhythm & Con">Rhythm &amp; Con</option>
+              <option value="LatinX">LatinX</option>
+              <option value="Mother">Mother</option>
+              <option value="Sibling">Sibling</option>
+              <option value="Sister">Sister</option>
+              <option value="Brother">Brother</option>
+              <option value="In-Law">In-Law</option>
+              <option value="Cousin">Cousin</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" id="submitBtn" class="primary-btn">Add Entry</button>
+          <button type="button" id="cancelEditBtn" class="ghost-btn">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ MBTI DETAIL MODAL ============ -->
+  <div id="mbtiModal" class="modal-overlay hidden">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button type="button" id="modalCloseBtn" class="modal-close" aria-label="Close">✕</button>
+
+      <div class="modal-header">
+        <h2 id="modalTitle"></h2>
+      </div>
+
+      <div class="modal-body">
+        <div class="modal-left">
+          <div class="modal-avatars">
+            <figure class="modal-avatar-fig">
+              <img id="modalAvatarM" class="modal-avatar" alt="">
+            </figure>
+            <figure class="modal-avatar-fig">
+              <img id="modalAvatarF" class="modal-avatar" alt="">
+            </figure>
+          </div>
+
+          <div class="modal-section">
+            <h3>Members</h3>
+            <div id="modalMembers" class="modal-members"></div>
+          </div>
+
+          <div class="modal-section">
+            <h3>Stereotypes</h3>
+            <ul id="modalStereotypes" class="modal-stereotypes"></ul>
+          </div>
+        </div>
+
+        <div class="modal-right">
+          <h3>Observations</h3>
+          <ul id="modalObservations" class="modal-observations"></ul>
+          <form id="observationForm" class="observation-form">
+            <input type="text" id="observationInput" placeholder="Add an observation…" autocomplete="off">
+            <button type="submit" class="ghost-btn">Add</button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
