@@ -7,10 +7,7 @@ the browser; there is no server or account system.
 
 ## Running it
 
-There's nothing to install or build. Just open [`index.html`](index.html) in
-a browser (double-click it, or right-click → Open with). An internet
-connection is needed the first time it loads, since the emoji picker library
-is pulled from a CDN (`cdn.jsdelivr.net`) — everything else works offline.
+(https://udongear.github.io/MBTI-Tracker/)
 
 ## Features
 
