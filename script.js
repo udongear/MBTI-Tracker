@@ -3,58 +3,14 @@
 
   const STORAGE_KEY = "mbtiViewer.entries";
   const DATA_VERSION_KEY = "mbtiViewer.dataVersion";
-  const DATA_VERSION = "seed-2026-08-27";
+  // Bumping this wipes any previously-seeded entries/relationships/sub-categories
+  // (see the reset block below) and reseeds from the DEFAULT_* lists here — used
+  // once to strip this app's personal example data for public release.
+  const DATA_VERSION = "public-template-2026-09-08";
 
-  const DEFAULT_ENTRIES = [
-    { status: "AI Confirmed", emoji: "🧍", name: "Josh",     mbti: "ISTJ", gender: "M", relationship: "Coworker",          subCategory: "" },
-    { status: "Speculated",   emoji: "🤖", name: "Tony",     mbti: "ISTJ", gender: "M", relationship: "Friend",            subCategory: "JW Post-Covid" },
-    { status: "AI Confirmed", emoji: "🦁", name: "Mom",      mbti: "ISTJ", gender: "F", relationship: "Family",            subCategory: "Mother" },
-    { status: "Pending",      emoji: "🍜", name: "Tra",      mbti: "ISFJ", gender: "F", relationship: "Family",            subCategory: "In-Law" },
-    { status: "Speculated",   emoji: "🍚", name: "Kaileen",  mbti: "ISFJ", gender: "F", relationship: "Friend",            subCategory: "JW Post-Covid" },
-    { status: "Pending",      emoji: "🏈", name: "Mathew",   mbti: "INFJ", gender: "M", relationship: "Coworker",          subCategory: "" },
-    { status: "Speculated",   emoji: "⚓", name: "Nassau",   mbti: "INFJ", gender: "F", relationship: "Romantic Interest", subCategory: "" },
-    { status: "Speculated",   emoji: "🦦", name: "Eric L",   mbti: "INFJ", gender: "M", relationship: "Partner/Ex",        subCategory: "JW Post-Covid" },
-    { status: "Pending",      emoji: "🫗", name: "Norberto", mbti: "INFJ", gender: "M", relationship: "Friend",            subCategory: "LatinX" },
-    { status: "Confirmed",    emoji: "🔵", name: "Alex",     mbti: "INFJ", gender: "M", relationship: "Friend",            subCategory: "Rhythm & Con" },
-    { status: "Speculated",   emoji: "🏠", name: "Vianney",  mbti: "INFJ", gender: "F", relationship: "Family",            subCategory: "Sister" },
-    { status: "Speculated",   emoji: "🥝", name: "Beatriz",  mbti: "INFJ", gender: "F", relationship: "Romantic Interest", subCategory: "" },
-    { status: "AI Confirmed", emoji: "📊", name: "Jamie",    mbti: "INTJ", gender: "F", relationship: "Coworker",          subCategory: "" },
-    { status: "Confirmed",    emoji: "🍞", name: "Walter",   mbti: "INTJ", gender: "M", relationship: "Coworker",          subCategory: "" },
-    { status: "Confirmed",    emoji: "🌱", name: "Me",       mbti: "INTJ", gender: "M", relationship: "Self",              subCategory: "" },
-    { status: "Pending",      emoji: "👃", name: "Brennen",  mbti: "INTJ", gender: "M", relationship: "Friend",            subCategory: "Rhythm & Con" },
-    { status: "Speculated",   emoji: "🥖", name: "Howard",   mbti: "INTJ", gender: "M", relationship: "Friend",            subCategory: "Rhythm & Con" },
-    { status: "Rejected",     emoji: "⚡", name: "Jack",     mbti: "INTJ", gender: "M", relationship: "Friend",            subCategory: "Rhythm & Con" },
-    { status: "Pending",      emoji: "🎹", name: "Justin",   mbti: "INTJ", gender: "M", relationship: "Friend",            subCategory: "Rhythm & Con" },
-    { status: "Speculated",   emoji: "🐝", name: "Gabi",     mbti: "ISTP", gender: "F", relationship: "Romantic Interest", subCategory: "" },
-    { status: "Speculated",   emoji: "🔰", name: "Leo",      mbti: "ISTP", gender: "M", relationship: "Friend",            subCategory: "JW Post-Covid" },
-    { status: "Confirmed",    emoji: "🙄", name: "Kelly",    mbti: "ISFP", gender: "F", relationship: "Coworker",          subCategory: "" },
-    { status: "Speculated",   emoji: "😁", name: "Heather",  mbti: "ISFP", gender: "F", relationship: "Friend",            subCategory: "JW Pre-Covid" },
-    { status: "Speculated",   emoji: "🌻", name: "Zihurave", mbti: "ISFP", gender: "F", relationship: "Friend",            subCategory: "JW Pre-Covid" },
-    { status: "Confirmed",    emoji: "🎞️", name: "Kristen",  mbti: "INFP", gender: "F", relationship: "Coworker",          subCategory: "" },
-    { status: "Confirmed",    emoji: "🌸", name: "Nita",     mbti: "INFP", gender: "F", relationship: "Partner/Ex",        subCategory: "" },
-    { status: "Speculated",   emoji: "⏱️", name: "Froy",     mbti: "INFP", gender: "M", relationship: "Family",            subCategory: "Cousin" },
-    { status: "Speculated",   emoji: "👺", name: "Ashlynn",  mbti: "INFP", gender: "F", relationship: "Partner/Ex",        subCategory: "JW Pre-Covid" },
-    { status: "Pending",      emoji: "👨‍👩‍👧‍👦", name: "Chris",   mbti: "INFP", gender: "M", relationship: "Friend",            subCategory: "Rhythm & Con" },
-    { status: "Pending",      emoji: "🫧", name: "Peaktra",  mbti: "INFP", gender: "M", relationship: "Friend",            subCategory: "Rhythm & Con" },
-    { status: "Pending",      emoji: "💂", name: "Haley",    mbti: "INTP", gender: "F", relationship: "Coworker",          subCategory: "" },
-    { status: "Confirmed",    emoji: "🧙‍♂️", name: "Eric P",   mbti: "INTP", gender: "M", relationship: "Coworker",          subCategory: "" },
-    { status: "Pending",      emoji: "🤸", name: "Ben",      mbti: "INTP", gender: "M", relationship: "Family",            subCategory: "Brother" },
-    { status: "Speculated",   emoji: "🎮", name: "Joel",     mbti: "INTP", gender: "M", relationship: "Friend",            subCategory: "JW Pre-Covid" },
-    { status: "Speculated",   emoji: "💪", name: "Alvaro",   mbti: "ESTP", gender: "M", relationship: "Friend",            subCategory: "JW Post-Covid" },
-    { status: "Speculated",   emoji: "📶", name: "Alberto",  mbti: "ESFP", gender: "M", relationship: "Friend",            subCategory: "JW Post-Covid" },
-    { status: "Confirmed",    emoji: "🌴", name: "Layla",    mbti: "ENFP", gender: "F", relationship: "Coworker",          subCategory: "" },
-    { status: "Pending",      emoji: "♟️", name: "Sam",      mbti: "ENFP", gender: "M", relationship: "Friend",            subCategory: "LatinX" },
-    { status: "Pending",      emoji: "☁️", name: "Gabe",     mbti: "ENFP", gender: "M", relationship: "Friend",            subCategory: "Rhythm & Con" },
-    { status: "Speculated",   emoji: "🐶", name: "Josiah",   mbti: "ENTP", gender: "M", relationship: "Friend",            subCategory: "JW Pre-Covid" },
-    { status: "Speculated",   emoji: "🚗", name: "Mario",    mbti: "ESTJ", gender: "M", relationship: "Family",            subCategory: "In-Law" },
-    { status: "Pending",      emoji: "✨", name: "Elisa",    mbti: "ESFJ", gender: "F", relationship: "Coworker",          subCategory: "" },
-    { status: "Speculated",   emoji: "☕", name: "Alina",    mbti: "ESFJ", gender: "F", relationship: "Friend",            subCategory: "JW Pre-Covid" },
-    { status: "AI Confirmed", emoji: "💤", name: "Steven",   mbti: "ESFJ", gender: "M", relationship: "Friend",            subCategory: "JW Pre-Covid" },
-    { status: "Speculated",   emoji: "🐺", name: "Blake",    mbti: "ENFJ", gender: "M", relationship: "Friend",            subCategory: "JW Post-Covid" },
-    { status: "Confirmed",    emoji: "🐴", name: "Pablo",    mbti: "ENFJ", gender: "M", relationship: "Friend",            subCategory: "Rhythm & Con" },
-    { status: "AI Confirmed", emoji: "👓", name: "Miguel",   mbti: "ENTJ", gender: "M", relationship: "Friend",            subCategory: "JW Post-Covid" },
-    { status: "Confirmed",    emoji: "👁️", name: "Nat",      mbti: "ENTJ", gender: "M", relationship: "Friend",            subCategory: "Rhythm & Con" },
-  ];
+  // Intentionally empty — this is the public template. Entries are added via the
+  // "+ Add Entry" button once the page is running.
+  const DEFAULT_ENTRIES = [];
 
   const MBTI_TYPES = [
     { code: "ISTJ", name: "Logistician", group: "sentinel" },
@@ -79,16 +35,20 @@
   // (CSV import validation, list sorting) reference them at module-load time.
   const GENDER_ORDER = ["M", "F"];
   const STATUS_ORDER = ["Confirmed", "AI Confirmed", "Pending", "Speculated", "Rejected"];
-  const RELATIONSHIP_ORDER = ["Partner/Ex", "Romantic Interest", "Friend", "Coworker", "Family", "Self"];
-  const SUBCATEGORY_ORDER = [
-    "JW Pre-Covid", "JW Post-Covid", "Rhythm & Con", "LatinX",
-    "Mother", "Sibling", "Sister", "Brother", "In-Law", "Cousin",
-  ];
+  // Intentionally empty — add your own via Settings → Relationships / Sub-Categories.
+  const DEFAULT_RELATIONSHIP_NAMES = [];
+  const DEFAULT_SUBCATEGORY_NAMES = [];
 
   function orderIndex(order, value) {
     const i = order.indexOf(value);
     return i === -1 ? Infinity : i; // blank/unrecognized values sort last
   }
+
+  // Relationships and sub-categories are user-editable (see Settings), so their
+  // sort order and valid-value lists are read live off the current lists below
+  // rather than baked in as static arrays.
+  function relationshipNames() { return relationships.map((r) => r.name); }
+  function subCategoryNames() { return subCategories.map((s) => s.name); }
 
   function mbtiIndex(code) {
     const i = MBTI_TYPES.findIndex((t) => t.code === code);
@@ -99,7 +59,7 @@
     ISTJ: ["Rigid", "Methodical", "Boring"],
     ISFJ: ["People Pleasing", "Self Sacrificing", "Nurturing"],
     INFJ: ["Philosophical", "Passionate", "Cautious"],
-    INTJ: ["Quiet", "Emotionless", "Strategic"],
+    INTJ: ["Awkward", "Reserved", "Smart"],
     ISTP: ["Lone Wolf", "Practical", "Reserved"],
     ISFP: ["Airheaded", "Artistic", "Unemployed"],
     INFP: ["Expressive", "Daydreamer", "Crybaby"],
@@ -132,6 +92,62 @@
 
   /** @type {Object<string, string[]>} */
   let observations = loadObservations();
+
+  // ---------- settings: icon style, relationships, sub-categories ----------
+  const ICON_MODE_KEY = "mbtiViewer.iconMode";
+  const RELATIONSHIPS_KEY = "mbtiViewer.relationships";
+  const SUBCATEGORIES_KEY = "mbtiViewer.subCategories";
+
+  // A DATA_VERSION bump (see loadEntries) means previously-seeded personal data is
+  // being retired — wipe any relationships/sub-categories a prior version seeded too,
+  // so this and every already-visited browser starts clean instead of just new ones.
+  if (localStorage.getItem(DATA_VERSION_KEY) !== DATA_VERSION) {
+    localStorage.removeItem(RELATIONSHIPS_KEY);
+    localStorage.removeItem(SUBCATEGORIES_KEY);
+  }
+
+  function loadIconMode() {
+    return localStorage.getItem(ICON_MODE_KEY) === "initial" ? "initial" : "emoji";
+  }
+
+  function saveIconMode() {
+    localStorage.setItem(ICON_MODE_KEY, iconMode);
+  }
+
+  /** Loads a user-editable {id, name}[] list, seeding it from defaultNames on first run. */
+  function loadOptionList(key, defaultNames) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {
+      console.error(`Failed to load ${key}`, e);
+    }
+    const seeded = defaultNames.map((name) => ({ id: uid(), name }));
+    localStorage.setItem(key, JSON.stringify(seeded));
+    return seeded;
+  }
+
+  function saveRelationships() {
+    localStorage.setItem(RELATIONSHIPS_KEY, JSON.stringify(relationships));
+  }
+
+  function saveSubCategories() {
+    localStorage.setItem(SUBCATEGORIES_KEY, JSON.stringify(subCategories));
+  }
+
+  let iconMode = loadIconMode();
+  /** @type {Array<{id: string, name: string}>} */
+  let relationships = loadOptionList(RELATIONSHIPS_KEY, DEFAULT_RELATIONSHIP_NAMES);
+  /** @type {Array<{id: string, name: string}>} */
+  let subCategories = loadOptionList(SUBCATEGORIES_KEY, DEFAULT_SUBCATEGORY_NAMES);
+
+  function iconGlyph(en) {
+    if (iconMode === "initial") {
+      const letter = (en.name || "").trim().charAt(0).toUpperCase();
+      return escapeHtml(letter || "?");
+    }
+    return en.emoji || "❓";
+  }
 
   /** @type {Array<Object>} */
   let entries = loadEntries();
@@ -228,6 +244,15 @@
   const observationForm = document.getElementById("observationForm");
   const observationInput = document.getElementById("observationInput");
 
+  const settingsBtn = document.getElementById("settingsBtn");
+  const settingsModal = document.getElementById("settingsModal");
+  const settingsCloseBtn = document.getElementById("settingsCloseBtn");
+  const iconModeToggle = document.getElementById("iconModeToggle");
+  const relationshipEditor = document.getElementById("relationshipEditor");
+  const subCategoryEditor = document.getElementById("subCategoryEditor");
+  const addRelationshipBtn = document.getElementById("addRelationshipBtn");
+  const addSubCategoryBtn = document.getElementById("addSubCategoryBtn");
+
   // ---------- init ----------
   function populateMbtiDropdown() {
     mbtiField.innerHTML =
@@ -235,6 +260,22 @@
       MBTI_TYPES.map(
         (t) => `<option value="${t.code}">${t.code} — ${t.name}</option>`
       ).join("");
+  }
+
+  function populateRelationshipDropdown() {
+    const current = relationshipField.value;
+    relationshipField.innerHTML =
+      `<option value="">-</option>` +
+      relationships.map((r) => `<option value="${escapeHtml(r.name)}">${escapeHtml(r.name)}</option>`).join("");
+    relationshipField.value = current;
+  }
+
+  function populateSubCategoryDropdown() {
+    const current = subCategoryField.value;
+    subCategoryField.innerHTML =
+      `<option value="">-</option>` +
+      subCategories.map((s) => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`).join("");
+    subCategoryField.value = current;
   }
 
   function switchMode(mode) {
@@ -405,17 +446,19 @@
 
   importCsvBtn.addEventListener("click", () => importCsvFile.click());
 
-  const KNOWN_VALUES = {
-    mbti: MBTI_TYPES.map((t) => t.code),
-    status: STATUS_ORDER,
-    gender: ["M", "F"],
-    relationship: RELATIONSHIP_ORDER,
-    subCategory: SUBCATEGORY_ORDER,
-  };
+  function getKnownValues() {
+    return {
+      mbti: MBTI_TYPES.map((t) => t.code),
+      status: STATUS_ORDER,
+      gender: ["M", "F"],
+      relationship: relationshipNames(),
+      subCategory: subCategoryNames(),
+    };
+  }
 
   function isRecognized(key, value) {
     if (!value) return true; // blank is always fine
-    return KNOWN_VALUES[key].some((k) => k.toLowerCase() === value.toLowerCase());
+    return getKnownValues()[key].some((k) => k.toLowerCase() === value.toLowerCase());
   }
 
   importCsvFile.addEventListener("change", () => {
@@ -433,6 +476,7 @@
           const col = colIndex[fieldIdx];
           return col === -1 ? "" : (row[col] || "").trim();
         };
+        const KNOWN = getKnownValues();
 
         const previewRows = [];
         for (let r = 1; r < rows.length; r++) {
@@ -464,11 +508,11 @@
               id: uid(),
               emoji: "❓", // emojis aren't supported via CSV — assigned by hand after import
               name: raw.name,
-              mbti: canonicalize(raw.mbti, KNOWN_VALUES.mbti),
-              status: canonicalize(raw.status, KNOWN_VALUES.status),
+              mbti: canonicalize(raw.mbti, KNOWN.mbti),
+              status: canonicalize(raw.status, KNOWN.status),
               gender: /^[mf]$/i.test(raw.gender) ? raw.gender.toUpperCase() : "",
-              relationship: canonicalize(raw.relationship, KNOWN_VALUES.relationship),
-              subCategory: canonicalize(raw.subCategory, KNOWN_VALUES.subCategory),
+              relationship: canonicalize(raw.relationship, KNOWN.relationship),
+              subCategory: canonicalize(raw.subCategory, KNOWN.subCategory),
             },
           });
         }
@@ -656,10 +700,14 @@
         return orderIndex(GENDER_ORDER, a.gender) - orderIndex(GENDER_ORDER, b.gender) || a.name.localeCompare(b.name);
       case "status":
         return a.status.localeCompare(b.status) || a.name.localeCompare(b.name);
-      case "relationship":
-        return orderIndex(RELATIONSHIP_ORDER, a.relationship) - orderIndex(RELATIONSHIP_ORDER, b.relationship) || a.name.localeCompare(b.name);
-      case "subCategory":
-        return orderIndex(SUBCATEGORY_ORDER, a.subCategory) - orderIndex(SUBCATEGORY_ORDER, b.subCategory) || a.name.localeCompare(b.name);
+      case "relationship": {
+        const order = relationshipNames();
+        return orderIndex(order, a.relationship) - orderIndex(order, b.relationship) || a.name.localeCompare(b.name);
+      }
+      case "subCategory": {
+        const order = subCategoryNames();
+        return orderIndex(order, a.subCategory) - orderIndex(order, b.subCategory) || a.name.localeCompare(b.name);
+      }
       case "name":
       default:
         return a.name.localeCompare(b.name);
@@ -721,7 +769,7 @@
         return `
         <tr data-id="${en.id}">
           <td class="cell-select"><input type="checkbox" class="row-select" data-id="${en.id}" ${selectedIds.has(en.id) ? "checked" : ""}></td>
-          <td class="cell-emoji">${en.emoji}</td>
+          <td class="cell-emoji">${iconGlyph(en)}</td>
           <td class="cell-name">${escapeHtml(en.name)}</td>
           <td><span class="entry-mbti ${en.mbti ? "group-" + mbtiGroup(en.mbti) : ""}">${en.mbti || "-"}</span></td>
           <td><span class="status-badge ${statusClass(en.status)}">${en.status || "-"}</span></td>
@@ -823,7 +871,7 @@
       const en = list[i];
       if (en) {
         const titleParts = [en.name, en.subCategory || en.relationship].filter(Boolean).map(escapeHtml);
-        html += `<div class="slot filled" data-id="${en.id}" title="${titleParts.join(" — ")}">${en.emoji}</div>`;
+        html += `<div class="slot filled" data-id="${en.id}" title="${titleParts.join(" — ")}">${iconGlyph(en)}</div>`;
       } else {
         html += `<div class="slot empty"></div>`;
       }
@@ -860,7 +908,7 @@
         const genderLabel = en.gender === "M" ? "Male" : en.gender === "F" ? "Female" : "-";
         return `
         <div class="modal-member">
-          <span class="modal-member-emoji">${en.emoji}</span>
+          <span class="modal-member-emoji">${iconGlyph(en)}</span>
           <span class="modal-member-name">${escapeHtml(en.name)}</span>
           <span class="gender-tag ${en.gender}">${genderLabel}</span>
           <span class="modal-member-sub">${sub}</span>
@@ -922,6 +970,7 @@
     else if (!entryModal.classList.contains("hidden")) closeAndResetEntryModal();
     else if (!importPreviewModal.classList.contains("hidden")) closeImportPreview();
     else if (!importExportModal.classList.contains("hidden")) closeImportExportModal();
+    else if (!settingsModal.classList.contains("hidden")) closeSettingsModal();
   });
 
   observationForm.addEventListener("submit", (e) => {
@@ -943,6 +992,132 @@
     modalObservations.innerHTML = renderModalObservations(currentModalCode);
   });
 
+  // ---------- settings modal ----------
+  function openSettingsModal() {
+    iconModeToggle.checked = iconMode === "initial";
+    relationshipManager.render();
+    subCategoryManager.render();
+    settingsModal.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeSettingsModal() {
+    settingsModal.classList.add("hidden");
+    document.body.style.overflow = "";
+  }
+
+  settingsBtn.addEventListener("click", openSettingsModal);
+  settingsCloseBtn.addEventListener("click", closeSettingsModal);
+  settingsModal.addEventListener("click", (e) => {
+    if (e.target === settingsModal) closeSettingsModal();
+  });
+
+  iconModeToggle.addEventListener("change", () => {
+    iconMode = iconModeToggle.checked ? "initial" : "emoji";
+    saveIconMode();
+    renderList();
+    renderGrid();
+  });
+
+  /**
+   * Wires up an add/edit/delete UI for a user-editable {id, name}[] list
+   * (Relationships or Sub-Categories) that doubles as one of an entry's field values.
+   */
+  function makeOptionManager({ container, list, entryField, save, refreshDropdown, noun }) {
+    function render() {
+      container.innerHTML =
+        list
+          .map(
+            (item) => `
+        <div class="option-row" data-id="${item.id}">
+          <input type="text" class="option-name" value="${escapeHtml(item.name)}" placeholder="Name">
+          <button type="button" class="icon-btn danger option-delete" title="Delete ${escapeHtml(noun)}">🗑️</button>
+        </div>`
+          )
+          .join("") || `<p class="settings-empty">No ${noun.toLowerCase()}s yet.</p>`;
+    }
+
+    container.addEventListener("change", (e) => {
+      if (!e.target.classList.contains("option-name")) return;
+      const row = e.target.closest(".option-row");
+      if (!row) return;
+      const item = list.find((x) => x.id === row.dataset.id);
+      if (!item) return;
+
+      const newName = e.target.value.trim();
+      if (!newName) { e.target.value = item.name; return; }
+      const oldName = item.name;
+      if (newName !== oldName) {
+        item.name = newName;
+        entries.forEach((en) => { if (en[entryField] === oldName) en[entryField] = newName; });
+        saveEntries();
+        renderList();
+        renderGrid();
+        refreshDropdown();
+      }
+      save();
+    });
+
+    container.addEventListener("click", (e) => {
+      const btn = e.target.closest(".option-delete");
+      if (!btn) return;
+      const item = list.find((x) => x.id === btn.closest(".option-row").dataset.id);
+      if (!item) return;
+
+      const usageCount = entries.filter((en) => en[entryField] === item.name).length;
+      const msg =
+        usageCount > 0
+          ? `Delete "${item.name}"? ${usageCount} entr${usageCount === 1 ? "y uses" : "ies use"} it — ${usageCount === 1 ? "it" : "they"}'ll be left with a blank ${noun.toLowerCase()}.`
+          : `Delete "${item.name}"?`;
+      if (!confirm(msg)) return;
+
+      list.splice(list.indexOf(item), 1);
+      if (usageCount > 0) {
+        entries.forEach((en) => { if (en[entryField] === item.name) en[entryField] = ""; });
+        saveEntries();
+        renderList();
+        renderGrid();
+      }
+      save();
+      refreshDropdown();
+      render();
+    });
+
+    return { render };
+  }
+
+  const relationshipManager = makeOptionManager({
+    container: relationshipEditor,
+    list: relationships,
+    entryField: "relationship",
+    save: saveRelationships,
+    refreshDropdown: populateRelationshipDropdown,
+    noun: "Relationship",
+  });
+
+  const subCategoryManager = makeOptionManager({
+    container: subCategoryEditor,
+    list: subCategories,
+    entryField: "subCategory",
+    save: saveSubCategories,
+    refreshDropdown: populateSubCategoryDropdown,
+    noun: "Sub-Category",
+  });
+
+  addRelationshipBtn.addEventListener("click", () => {
+    relationships.push({ id: uid(), name: "New Relationship" });
+    saveRelationships();
+    populateRelationshipDropdown();
+    relationshipManager.render();
+  });
+
+  addSubCategoryBtn.addEventListener("click", () => {
+    subCategories.push({ id: uid(), name: "New Sub-Category" });
+    saveSubCategories();
+    populateSubCategoryDropdown();
+    subCategoryManager.render();
+  });
+
   // ---------- toast ----------
   let toastTimer = null;
   function showToast(msg) {
@@ -954,6 +1129,8 @@
 
   // ---------- boot ----------
   populateMbtiDropdown();
+  populateRelationshipDropdown();
+  populateSubCategoryDropdown();
   renderList();
   renderGrid();
 })();

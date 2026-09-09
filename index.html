@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MBTI Viewer</title>
+<title>MBTI Tracker</title>
 <link rel="icon" type="image/png" href="imgs/fav.png">
 <link rel="stylesheet" href="style.css">
 <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
@@ -13,7 +13,10 @@
 <div class="app">
 
   <header class="topbar">
-    <h1>MBTI Viewer</h1>
+    <img src="imgs/beaker.png" alt="" class="header-logo">
+    <h1>MBTI Tracker</h1>
+
+    <button type="button" id="settingsBtn" class="ghost-btn settings-btn" title="Settings">⚙️</button>
 
     <div class="mode-toggle" role="tablist" aria-label="View mode">
       <button id="listModeBtn" class="mode-btn active" role="tab" aria-selected="true">📋 List</button>
@@ -124,32 +127,12 @@
 
           <label class="field field-wide">
             <span>Relationship</span>
-            <select id="relationship" required>
-              <option value="">-</option>
-              <option value="Partner/Ex">Partner/Ex</option>
-              <option value="Romantic Interest">Romantic Interest</option>
-              <option value="Friend">Friend</option>
-              <option value="Coworker">Coworker</option>
-              <option value="Family">Family</option>
-              <option value="Self">Self</option>
-            </select>
+            <select id="relationship" required></select>
           </label>
 
           <label class="field field-medium">
             <span>Sub Category</span>
-            <select id="subCategory">
-              <option value="">-</option>
-              <option value="JW Pre-Covid">JW Pre-Covid</option>
-              <option value="JW Post-Covid">JW Post-Covid</option>
-              <option value="Rhythm & Con">Rhythm &amp; Con</option>
-              <option value="LatinX">LatinX</option>
-              <option value="Mother">Mother</option>
-              <option value="Sibling">Sibling</option>
-              <option value="Sister">Sister</option>
-              <option value="Brother">Brother</option>
-              <option value="In-Law">In-Law</option>
-              <option value="Cousin">Cousin</option>
-            </select>
+            <select id="subCategory"></select>
           </label>
         </div>
 
@@ -238,6 +221,46 @@
           <button type="button" id="confirmImportBtn" class="primary-btn">Import <span id="confirmImportCount">0</span> Entries</button>
           <button type="button" id="cancelImportPreviewBtn" class="ghost-btn">Cancel</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SETTINGS MODAL ============ -->
+  <div id="settingsModal" class="modal-overlay hidden">
+    <div class="modal-card settings-modal-card" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
+      <button type="button" id="settingsCloseBtn" class="modal-close" aria-label="Close">✕</button>
+
+      <div class="modal-header">
+        <h2 id="settingsModalTitle">Settings</h2>
+      </div>
+
+      <div class="settings-body">
+        <section class="settings-section">
+          <h3>Icon Style</h3>
+          <p class="settings-blurb">Show each entry as its emoji, or as the first initial of its name.</p>
+          <label class="switch-row">
+            <span class="switch-label">Emojis</span>
+            <span class="switch">
+              <input type="checkbox" id="iconModeToggle">
+              <span class="switch-track"><span class="switch-thumb"></span></span>
+            </span>
+            <span class="switch-label">Initials</span>
+          </label>
+        </section>
+
+        <section class="settings-section">
+          <h3>Relationships</h3>
+          <p class="settings-blurb">The relationship options offered on each entry. Add a blurb and examples so you remember what each one covers.</p>
+          <div id="relationshipEditor" class="option-editor"></div>
+          <button type="button" id="addRelationshipBtn" class="ghost-btn">+ Add Relationship</button>
+        </section>
+
+        <section class="settings-section">
+          <h3>Sub-Categories</h3>
+          <p class="settings-blurb">Finer-grained tags you can attach to an entry alongside its relationship.</p>
+          <div id="subCategoryEditor" class="option-editor"></div>
+          <button type="button" id="addSubCategoryBtn" class="ghost-btn">+ Add Sub-Category</button>
+        </section>
       </div>
     </div>
   </div>
