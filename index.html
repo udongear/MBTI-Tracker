@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MBTI Tracker</title>
+<title>MBTI Viewer</title>
 <link rel="icon" type="image/png" href="imgs/fav.png">
 <link rel="stylesheet" href="style.css">
 <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
@@ -13,7 +13,7 @@
 <div class="app">
 
   <header class="topbar">
-    <h1>MBTI Tracker</h1>
+    <h1>MBTI Viewer</h1>
 
     <div class="mode-toggle" role="tablist" aria-label="View mode">
       <button id="listModeBtn" class="mode-btn active" role="tab" aria-selected="true">📋 List</button>
@@ -28,6 +28,8 @@
 
       <div class="list-controls">
         <button type="button" id="openAddEntryBtn" class="primary-btn">+ Add Entry</button>
+        <button type="button" id="openImportExportBtn" class="ghost-btn">⇅ Import/Export</button>
+        <button type="button" id="bulkDeleteBtn" class="ghost-btn danger-btn" hidden>🗑️ Delete Selected</button>
         <input type="search" id="searchBox" placeholder="Search by name…">
         <span id="entryCount" class="entry-count"></span>
       </div>
@@ -36,10 +38,11 @@
         <table class="entry-table">
           <thead>
             <tr>
+              <th class="col-select"><input type="checkbox" id="selectAllCheckbox" title="Select all"></th>
               <th class="col-emoji"></th>
               <th class="sortable" data-sort="name">Name</th>
               <th class="sortable" data-sort="mbti">MBTI</th>
-              <th>Status</th>
+              <th class="sortable" data-sort="status">Status</th>
               <th class="sortable" data-sort="gender">Gender</th>
               <th class="sortable" data-sort="relationship">Relationship</th>
               <th class="sortable" data-sort="subCategory">Sub Category</th>
@@ -155,6 +158,87 @@
           <button type="button" id="cancelEditBtn" class="ghost-btn">Cancel</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ============ IMPORT / EXPORT MODAL ============ -->
+  <div id="importExportModal" class="modal-overlay hidden">
+    <div class="modal-card entry-modal-card" role="dialog" aria-modal="true" aria-labelledby="importExportTitle">
+      <button type="button" id="importExportCloseBtn" class="modal-close" aria-label="Close">✕</button>
+
+      <div class="modal-header">
+        <h2 id="importExportTitle">Import / Export</h2>
+      </div>
+
+      <p class="ie-note">🚫 Emojis aren't supported in CSV files — the Emoji column is left out of import/export entirely. Newly imported entries default to ❓ until you assign one by hand.</p>
+
+      <div class="ie-list">
+        <div class="ie-row">
+          <div class="ie-row-text">
+            <div class="ie-row-title">Import Data</div>
+            <div class="ie-row-desc">Load entries from a CSV file — you'll get a review screen before anything is saved.</div>
+          </div>
+          <button type="button" id="importCsvBtn" class="ghost-btn">Import</button>
+          <input type="file" id="importCsvFile" accept=".csv,text/csv" hidden>
+        </div>
+
+        <div class="ie-row">
+          <div class="ie-row-text">
+            <div class="ie-row-title">Export Data</div>
+            <div class="ie-row-desc"><span id="exportCount">0</span> entries as a CSV file.</div>
+          </div>
+          <button type="button" id="exportCsvBtn" class="ghost-btn">Export</button>
+        </div>
+
+        <div class="ie-row">
+          <div class="ie-row-text">
+            <div class="ie-row-title">Download Template</div>
+            <div class="ie-row-desc">A blank CSV with the correct columns, ready to fill in.</div>
+          </div>
+          <button type="button" id="downloadTemplateBtn" class="ghost-btn">Download</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ IMPORT PREVIEW MODAL ============ -->
+  <div id="importPreviewModal" class="modal-overlay hidden">
+    <div class="modal-card import-preview-card" role="dialog" aria-modal="true" aria-labelledby="importPreviewTitle">
+      <button type="button" id="importPreviewCloseBtn" class="modal-close" aria-label="Close">✕</button>
+
+      <div class="modal-header">
+        <h2 id="importPreviewTitle">Import Preview</h2>
+        <div id="importPreviewSummary" class="import-preview-summary"></div>
+      </div>
+
+      <div class="table-scroll import-preview-scroll">
+        <table class="entry-table">
+          <thead>
+            <tr>
+              <th>Row</th>
+              <th>Name</th>
+              <th>MBTI</th>
+              <th>Status</th>
+              <th>Gender</th>
+              <th>Relationship</th>
+              <th>Sub Category</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="importPreviewBody"></tbody>
+        </table>
+      </div>
+
+      <div class="import-preview-footer">
+        <div class="ip-modes">
+          <label class="ip-mode"><input type="radio" name="importMode" value="merge" checked> Add to existing data</label>
+          <label class="ip-mode"><input type="radio" name="importMode" value="replace"> Replace existing data</label>
+        </div>
+        <div class="form-actions">
+          <button type="button" id="confirmImportBtn" class="primary-btn">Import <span id="confirmImportCount">0</span> Entries</button>
+          <button type="button" id="cancelImportPreviewBtn" class="ghost-btn">Cancel</button>
+        </div>
+      </div>
     </div>
   </div>
 

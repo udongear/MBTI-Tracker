@@ -7,7 +7,10 @@ the browser; there is no server or account system.
 
 ## Running it
 
-(https://udongear.github.io/MBTI-Tracker/)
+There's nothing to install or build. Just open [`index.html`](index.html) in
+a browser (double-click it, or right-click → Open with). An internet
+connection is needed the first time it loads, since the emoji picker library
+is pulled from a CDN (`cdn.jsdelivr.net`) — everything else works offline.
 
 ## Features
 
@@ -15,15 +18,31 @@ the browser; there is no server or account system.
 
 - A spreadsheet-style table with a column for every field: Emoji, Name,
   MBTI, Status, Gender, Relationship, and Sub Category.
-- **Click any column header** (except Status) to sort by it; click again to
-  reverse direction. MBTI, Status, and Relationship sort by their natural
-  order (e.g. ISTJ → ENTJ) rather than alphabetically — Sub Category follows
-  the same pattern.
+- **Click any column header** to sort by it; click again to reverse
+  direction. MBTI and Relationship sort by their natural order (e.g.
+  ISTJ → ENTJ) rather than alphabetically — Sub Category follows the same
+  pattern. Status and Gender sort alphabetically.
 - **Search box** filters by name as you type.
 - **+ Add Entry** opens a popup form (Emoji picker, Name, MBTI, Status,
   Gender, Relationship, Sub Category) for adding a new person.
-- Each row has ✏️ (edit — opens the same popup, pre-filled) and 🗑️
-  (delete, with a confirmation prompt) actions.
+- **⇅ Import/Export** opens a popup with three actions (emojis aren't
+  supported in CSV, so the Emoji column is left out of all of them —
+  imported entries default to ❓ until you assign one by hand):
+  - **Import** — loads entries from a CSV file, then shows an **Import
+    Preview** screen before anything is saved: every row is listed with a
+    ✓ Ready / ⚠️ warning / Skipped status (missing Name, or an MBTI/Status/
+    Relationship/Sub Category value that doesn't match a known option get
+    flagged, matched case-insensitively where possible). From there you pick
+    **Add to existing data** or **Replace existing data** and confirm.
+  - **Export** — saves all current entries as a CSV file.
+  - **Download Template** — a blank CSV with the correct columns
+    (Name, MBTI, Status, Gender, Relationship, Sub Category) and one example
+    row, ready to fill in.
+- A checkbox column lets you **select multiple rows** (or Select All in the
+  header) and **bulk-delete** them at once via the button that appears next
+  to Import/Export.
+- Each row also has its own ✏️ (edit — opens the same popup, pre-filled) and
+  🗑️ (delete, with a confirmation prompt) actions.
 
 ### Grid view
 

@@ -75,6 +75,26 @@
     { code: "ENTJ", name: "Commander",   group: "analyst" },
   ];
 
+  // Shared lookup/order tables — declared early since several sections below
+  // (CSV import validation, list sorting) reference them at module-load time.
+  const GENDER_ORDER = ["M", "F"];
+  const STATUS_ORDER = ["Confirmed", "AI Confirmed", "Pending", "Speculated", "Rejected"];
+  const RELATIONSHIP_ORDER = ["Partner/Ex", "Romantic Interest", "Friend", "Coworker", "Family", "Self"];
+  const SUBCATEGORY_ORDER = [
+    "JW Pre-Covid", "JW Post-Covid", "Rhythm & Con", "LatinX",
+    "Mother", "Sibling", "Sister", "Brother", "In-Law", "Cousin",
+  ];
+
+  function orderIndex(order, value) {
+    const i = order.indexOf(value);
+    return i === -1 ? Infinity : i; // blank/unrecognized values sort last
+  }
+
+  function mbtiIndex(code) {
+    const i = MBTI_TYPES.findIndex((t) => t.code === code);
+    return i === -1 ? Infinity : i;
+  }
+
   const STEREOTYPES = {
     ISTJ: ["Rigid", "Methodical", "Boring"],
     ISFJ: ["People Pleasing", "Self Sacrificing", "Nurturing"],
@@ -116,6 +136,7 @@
   /** @type {Array<Object>} */
   let entries = loadEntries();
   let editingId = null;
+  const selectedIds = new Set();
 
   // ---------- persistence ----------
   function loadEntries() {
@@ -169,10 +190,29 @@
   const entryModalCloseBtn = document.getElementById("entryModalCloseBtn");
   const openAddEntryBtn = document.getElementById("openAddEntryBtn");
 
+  const importExportModal = document.getElementById("importExportModal");
+  const importExportCloseBtn = document.getElementById("importExportCloseBtn");
+  const openImportExportBtn = document.getElementById("openImportExportBtn");
+  const exportCount = document.getElementById("exportCount");
+  const downloadTemplateBtn = document.getElementById("downloadTemplateBtn");
+  const exportCsvBtn = document.getElementById("exportCsvBtn");
+  const importCsvBtn = document.getElementById("importCsvBtn");
+  const importCsvFile = document.getElementById("importCsvFile");
+
+  const importPreviewModal = document.getElementById("importPreviewModal");
+  const importPreviewCloseBtn = document.getElementById("importPreviewCloseBtn");
+  const importPreviewSummary = document.getElementById("importPreviewSummary");
+  const importPreviewBody = document.getElementById("importPreviewBody");
+  const confirmImportBtn = document.getElementById("confirmImportBtn");
+  const confirmImportCount = document.getElementById("confirmImportCount");
+  const cancelImportPreviewBtn = document.getElementById("cancelImportPreviewBtn");
+
   const searchBox = document.getElementById("searchBox");
   const sortHeaders = document.querySelectorAll(".entry-table th.sortable");
   const entryCount = document.getElementById("entryCount");
   const entryList = document.getElementById("entryList");
+  const selectAllCheckbox = document.getElementById("selectAllCheckbox");
+  const bulkDeleteBtn = document.getElementById("bulkDeleteBtn");
 
   const mbtiGrid = document.getElementById("mbtiGrid");
   const toast = document.getElementById("toast");
@@ -266,6 +306,259 @@
     if (e.target === entryModal) closeAndResetEntryModal();
   });
 
+  // ---------- import / export ----------
+  const CSV_FIELDS = [
+    { header: "Name", key: "name" },
+    { header: "MBTI", key: "mbti" },
+    { header: "Status", key: "status" },
+    { header: "Gender", key: "gender" },
+    { header: "Relationship", key: "relationship" },
+    { header: "Sub Category", key: "subCategory" },
+  ];
+
+  function csvEscape(value) {
+    const str = String(value ?? "");
+    return /[",\r\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+  }
+
+  function toCSV(rows) {
+    return rows.map((row) => row.map(csvEscape).join(",")).join("\r\n");
+  }
+
+  function parseCSV(text) {
+    const rows = [];
+    let row = [];
+    let field = "";
+    let inQuotes = false;
+
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (inQuotes) {
+        if (ch === '"' && text[i + 1] === '"') { field += '"'; i++; }
+        else if (ch === '"') { inQuotes = false; }
+        else { field += ch; }
+      } else if (ch === '"') {
+        inQuotes = true;
+      } else if (ch === ",") {
+        row.push(field); field = "";
+      } else if (ch === "\n" || ch === "\r") {
+        if (ch === "\r" && text[i + 1] === "\n") i++;
+        row.push(field); field = "";
+        rows.push(row); row = [];
+      } else {
+        field += ch;
+      }
+    }
+    if (field.length > 0 || row.length > 0) {
+      row.push(field);
+      rows.push(row);
+    }
+    return rows.filter((r) => r.length > 1 || r[0] !== "");
+  }
+
+  function downloadFile(filename, content, mime) {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function canonicalize(value, knownList) {
+    const v = (value || "").trim();
+    if (!v) return "";
+    const match = knownList.find((k) => k.toLowerCase() === v.toLowerCase());
+    return match || v;
+  }
+
+  function openImportExportModal() {
+    exportCount.textContent = String(entries.length);
+    importExportModal.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeImportExportModal() {
+    importExportModal.classList.add("hidden");
+    document.body.style.overflow = "";
+  }
+
+  openImportExportBtn.addEventListener("click", openImportExportModal);
+  importExportCloseBtn.addEventListener("click", closeImportExportModal);
+  importExportModal.addEventListener("click", (e) => {
+    if (e.target === importExportModal) closeImportExportModal();
+  });
+
+  downloadTemplateBtn.addEventListener("click", () => {
+    const header = CSV_FIELDS.map((f) => f.header);
+    const example = ["Jane Doe", "INFP", "Confirmed", "F", "Friend", "JW Pre-Covid"];
+    downloadFile("mbti-viewer-template.csv", toCSV([header, example]), "text/csv");
+  });
+
+  exportCsvBtn.addEventListener("click", () => {
+    const header = CSV_FIELDS.map((f) => f.header);
+    const rows = entries.map((en) => CSV_FIELDS.map((f) => en[f.key] ?? ""));
+    downloadFile("mbti-viewer-data.csv", toCSV([header, ...rows]), "text/csv");
+    showToast(`Exported ${entries.length} entries`);
+  });
+
+  importCsvBtn.addEventListener("click", () => importCsvFile.click());
+
+  const KNOWN_VALUES = {
+    mbti: MBTI_TYPES.map((t) => t.code),
+    status: STATUS_ORDER,
+    gender: ["M", "F"],
+    relationship: RELATIONSHIP_ORDER,
+    subCategory: SUBCATEGORY_ORDER,
+  };
+
+  function isRecognized(key, value) {
+    if (!value) return true; // blank is always fine
+    return KNOWN_VALUES[key].some((k) => k.toLowerCase() === value.toLowerCase());
+  }
+
+  importCsvFile.addEventListener("change", () => {
+    const file = importCsvFile.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const rows = parseCSV(String(reader.result));
+        if (rows.length === 0) throw new Error("File is empty.");
+
+        const headerRow = rows[0].map((h) => h.trim().toLowerCase());
+        const colIndex = CSV_FIELDS.map((f) => headerRow.indexOf(f.header.toLowerCase()));
+        const get = (row, fieldIdx) => {
+          const col = colIndex[fieldIdx];
+          return col === -1 ? "" : (row[col] || "").trim();
+        };
+
+        const previewRows = [];
+        for (let r = 1; r < rows.length; r++) {
+          const row = rows[r];
+          const raw = {
+            name: get(row, 0),
+            mbti: get(row, 1),
+            status: get(row, 2),
+            gender: get(row, 3),
+            relationship: get(row, 4),
+            subCategory: get(row, 5),
+          };
+          if (Object.values(raw).every((v) => v === "")) continue; // fully blank line
+
+          const skip = !raw.name;
+          const issues = [];
+          if (skip) issues.push("Missing Name — this row will be skipped");
+          if (!isRecognized("mbti", raw.mbti)) issues.push(`MBTI "${raw.mbti}" not recognized`);
+          if (!isRecognized("status", raw.status)) issues.push(`Status "${raw.status}" not recognized`);
+          if (!isRecognized("gender", raw.gender)) issues.push(`Gender "${raw.gender}" not recognized — will be left blank`);
+          if (!isRecognized("relationship", raw.relationship)) issues.push(`Relationship "${raw.relationship}" isn't a standard option`);
+          if (!isRecognized("subCategory", raw.subCategory)) issues.push(`Sub Category "${raw.subCategory}" isn't a standard option`);
+
+          previewRows.push({
+            rowNumber: r + 1, // CSV line number (header is line 1)
+            skip,
+            issues,
+            entry: {
+              id: uid(),
+              emoji: "❓", // emojis aren't supported via CSV — assigned by hand after import
+              name: raw.name,
+              mbti: canonicalize(raw.mbti, KNOWN_VALUES.mbti),
+              status: canonicalize(raw.status, KNOWN_VALUES.status),
+              gender: /^[mf]$/i.test(raw.gender) ? raw.gender.toUpperCase() : "",
+              relationship: canonicalize(raw.relationship, KNOWN_VALUES.relationship),
+              subCategory: canonicalize(raw.subCategory, KNOWN_VALUES.subCategory),
+            },
+          });
+        }
+
+        if (previewRows.length === 0) throw new Error("No data rows found in this file.");
+
+        openImportPreview(previewRows);
+      } catch (err) {
+        alert("Could not read file: " + err.message);
+      } finally {
+        importCsvFile.value = "";
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  // ---------- import preview / checkpoint ----------
+  let pendingImportRows = [];
+
+  function openImportPreview(rows) {
+    pendingImportRows = rows;
+    const ready = rows.filter((r) => !r.skip);
+    const warned = ready.filter((r) => r.issues.length > 0);
+    const skipped = rows.filter((r) => r.skip);
+
+    importPreviewSummary.textContent =
+      `${ready.length} ready to import` +
+      (warned.length ? ` · ${warned.length} with warnings` : "") +
+      (skipped.length ? ` · ${skipped.length} skipped (missing Name)` : "");
+
+    confirmImportCount.textContent = String(ready.length);
+    confirmImportBtn.disabled = ready.length === 0;
+    document.querySelector('input[name="importMode"][value="merge"]').checked = true;
+
+    importPreviewBody.innerHTML = rows
+      .map((r) => {
+        const en = r.entry;
+        let notes;
+        if (r.skip) notes = `<span class="ip-skip-label">Skipped</span>`;
+        else if (r.issues.length) notes = `<ul class="ip-issues">${r.issues.map((i) => `<li>${escapeHtml(i)}</li>`).join("")}</ul>`;
+        else notes = `<span class="ip-ok">✓ Ready</span>`;
+
+        return `
+        <tr class="${r.skip ? "ip-skip" : ""}">
+          <td>${r.rowNumber}</td>
+          <td>${escapeHtml(en.name) || "—"}</td>
+          <td>${escapeHtml(en.mbti) || "-"}</td>
+          <td>${escapeHtml(en.status) || "-"}</td>
+          <td>${escapeHtml(en.gender) || "-"}</td>
+          <td>${escapeHtml(en.relationship) || "-"}</td>
+          <td>${escapeHtml(en.subCategory) || "-"}</td>
+          <td class="ip-notes">${notes}</td>
+        </tr>`;
+      })
+      .join("");
+
+    closeImportExportModal();
+    importPreviewModal.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeImportPreview() {
+    importPreviewModal.classList.add("hidden");
+    document.body.style.overflow = "";
+    pendingImportRows = [];
+  }
+
+  confirmImportBtn.addEventListener("click", () => {
+    const ready = pendingImportRows.filter((r) => !r.skip).map((r) => r.entry);
+    if (ready.length === 0) return;
+
+    const mode = document.querySelector('input[name="importMode"]:checked').value;
+    if (mode === "replace" && !confirm(`Replace all existing entries with these ${ready.length}? This cannot be undone.`)) {
+      return;
+    }
+
+    entries = mode === "replace" ? ready : entries.concat(ready);
+    saveEntries();
+    renderList();
+    renderGrid();
+    closeImportPreview();
+    showToast(`Imported ${ready.length} entries`);
+  });
+
+  importPreviewCloseBtn.addEventListener("click", closeImportPreview);
+  cancelImportPreviewBtn.addEventListener("click", closeImportPreview);
+  importPreviewModal.addEventListener("click", (e) => {
+    if (e.target === importPreviewModal) closeImportPreview();
+  });
+
   // ---------- form handling ----------
   entryForm.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -355,24 +648,6 @@
     return type ? type.group : "";
   }
 
-  const GENDER_ORDER = ["M", "F"];
-  const STATUS_ORDER = ["Confirmed", "AI Confirmed", "Pending", "Speculated", "Rejected"];
-  const RELATIONSHIP_ORDER = ["Partner/Ex", "Romantic Interest", "Friend", "Coworker", "Family", "Self"];
-  const SUBCATEGORY_ORDER = [
-    "JW Pre-Covid", "JW Post-Covid", "Rhythm & Con", "LatinX",
-    "Mother", "Sibling", "Sister", "Brother", "In-Law", "Cousin",
-  ];
-
-  function orderIndex(order, value) {
-    const i = order.indexOf(value);
-    return i === -1 ? Infinity : i; // blank/unrecognized values sort last
-  }
-
-  function mbtiIndex(code) {
-    const i = MBTI_TYPES.findIndex((t) => t.code === code);
-    return i === -1 ? Infinity : i;
-  }
-
   function compareEntries(a, b, key) {
     switch (key) {
       case "mbti":
@@ -380,7 +655,7 @@
       case "gender":
         return orderIndex(GENDER_ORDER, a.gender) - orderIndex(GENDER_ORDER, b.gender) || a.name.localeCompare(b.name);
       case "status":
-        return orderIndex(STATUS_ORDER, a.status) - orderIndex(STATUS_ORDER, b.status) || a.name.localeCompare(b.name);
+        return a.status.localeCompare(b.status) || a.name.localeCompare(b.name);
       case "relationship":
         return orderIndex(RELATIONSHIP_ORDER, a.relationship) - orderIndex(RELATIONSHIP_ORDER, b.relationship) || a.name.localeCompare(b.name);
       case "subCategory":
@@ -424,11 +699,20 @@
       .filter((en) => !query || en.name.toLowerCase().includes(query))
       .sort((a, b) => compareEntries(a, b, sortField) * (sortDir === "desc" ? -1 : 1));
 
+    // drop selections that scrolled out of view (e.g. a search narrowed the list)
+    const visibleIds = new Set(visible.map((en) => en.id));
+    selectedIds.forEach((id) => { if (!visibleIds.has(id)) selectedIds.delete(id); });
+
     entryCount.textContent = `${visible.length} / ${entries.length} entries`;
     updateSortIndicators();
 
+    bulkDeleteBtn.hidden = selectedIds.size === 0;
+    bulkDeleteBtn.textContent = `🗑️ Delete Selected (${selectedIds.size})`;
+    selectAllCheckbox.checked = visible.length > 0 && visible.every((en) => selectedIds.has(en.id));
+    selectAllCheckbox.indeterminate = selectedIds.size > 0 && !selectAllCheckbox.checked;
+
     if (visible.length === 0) {
-      entryList.innerHTML = `<tr class="empty-row"><td colspan="8">No entries yet. Fill out the form above to add one.</td></tr>`;
+      entryList.innerHTML = `<tr class="empty-row"><td colspan="9">No entries yet. Fill out the form above to add one.</td></tr>`;
       return;
     }
 
@@ -436,6 +720,7 @@
       .map((en) => {
         return `
         <tr data-id="${en.id}">
+          <td class="cell-select"><input type="checkbox" class="row-select" data-id="${en.id}" ${selectedIds.has(en.id) ? "checked" : ""}></td>
           <td class="cell-emoji">${en.emoji}</td>
           <td class="cell-name">${escapeHtml(en.name)}</td>
           <td><span class="entry-mbti ${en.mbti ? "group-" + mbtiGroup(en.mbti) : ""}">${en.mbti || "-"}</span></td>
@@ -460,6 +745,34 @@
     const id = row.dataset.id;
     if (e.target.closest(".edit-btn")) startEditing(id);
     if (e.target.closest(".delete-btn")) deleteEntry(id);
+  });
+
+  entryList.addEventListener("change", (e) => {
+    const cb = e.target.closest(".row-select");
+    if (!cb) return;
+    if (cb.checked) selectedIds.add(cb.dataset.id);
+    else selectedIds.delete(cb.dataset.id);
+    renderList();
+  });
+
+  selectAllCheckbox.addEventListener("change", () => {
+    const ids = Array.from(entryList.querySelectorAll("tr[data-id]")).map((tr) => tr.dataset.id);
+    if (selectAllCheckbox.checked) ids.forEach((id) => selectedIds.add(id));
+    else ids.forEach((id) => selectedIds.delete(id));
+    renderList();
+  });
+
+  bulkDeleteBtn.addEventListener("click", () => {
+    const count = selectedIds.size;
+    if (count === 0) return;
+    if (!confirm(`Delete ${count} selected entr${count === 1 ? "y" : "ies"}? This cannot be undone.`)) return;
+    entries = entries.filter((en) => !selectedIds.has(en.id));
+    if (editingId && selectedIds.has(editingId)) closeAndResetEntryModal();
+    selectedIds.clear();
+    saveEntries();
+    renderList();
+    renderGrid();
+    showToast(`Deleted ${count} entries`);
   });
 
   searchBox.addEventListener("input", renderList);
@@ -607,6 +920,8 @@
     if (e.key !== "Escape") return;
     if (!mbtiModal.classList.contains("hidden")) closeMbtiModal();
     else if (!entryModal.classList.contains("hidden")) closeAndResetEntryModal();
+    else if (!importPreviewModal.classList.contains("hidden")) closeImportPreview();
+    else if (!importExportModal.classList.contains("hidden")) closeImportExportModal();
   });
 
   observationForm.addEventListener("submit", (e) => {
