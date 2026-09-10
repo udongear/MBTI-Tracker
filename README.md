@@ -3,14 +3,31 @@
 A single-page, no-build web app for tracking the MBTI types of people in your
 life — friends, family, coworkers, romantic interests — with both a
 spreadsheet-style list and a visual 16-type grid. All data is kept locally in
-the browser; there is no server or account system.
+the browser (nothing is shared between accounts or devices); a Google sign-in
+just gates who can open the page.
 
 ## Running it
 
-There's nothing to install or build. Just open [`index.html`](index.html) in
-a browser (double-click it, or right-click → Open with). An internet
-connection is needed the first time it loads, since the emoji picker library
-is pulled from a CDN (`cdn.jsdelivr.net`) — everything else works offline.
+There's nothing to build, but you do need a Firebase project for sign-in:
+
+1. Create a project at the [Firebase Console](https://console.firebase.google.com/).
+2. **Authentication → Sign-in method** → enable **Google** as a provider.
+3. **Authentication → Settings → Authorized domains** → add whatever domain
+   you'll serve this from (`localhost` is included by default).
+4. **Project settings → General → Your apps** → add a Web app and copy its
+   config into [`firebase-config.js`](firebase-config.js) (it ships with
+   placeholder values).
+
+Because Google sign-in uses a popup, the page needs to be served over
+`http(s)`, not opened directly via `file://`. Any static file server works,
+e.g. `npx serve` or `python -m http.server` from this folder, then visit
+`http://localhost:<port>/login.html`. An internet connection is needed the
+first time it loads, since Firebase and the emoji picker library are both
+pulled from a CDN — everything else works offline.
+
+Visiting [`index.html`](index.html) while signed out redirects to
+[`login.html`](login.html); signing in with Google redirects back. A
+**Log Out** button sits next to the ⚙️ Settings button in the header.
 
 ## Features
 
@@ -102,13 +119,19 @@ or add avatar images.
 ## Project structure
 
 ```
-index.html   Markup: List view, Grid view, Add/Edit modal, MBTI detail modal
-style.css    All styling (dark purple/black theme, layout, modal styles)
-script.js    All behavior: data model, rendering, sorting, modals, storage
-imgs/        Avatar images (per MBTI type/gender) + favicon
+index.html         Markup: List view, Grid view, Add/Edit modal, MBTI detail modal
+login.html          The Google sign-in screen
+style.css           All styling (dark purple/black theme, layout, modal styles)
+script.js           All app behavior: data model, rendering, sorting, modals, storage
+firebase-config.js  Firebase project config + init — fill in your own values here
+auth-guard.js       Redirects index.html to login.html when signed out; wires Log Out
+login.js            Wires the "Continue with Google" button on login.html
+imgs/               Avatar images (per MBTI type/gender), the header logo, and favicon
 ```
 
-There's no framework, bundler, or package manager involved — just three
-plain files plus the one CDN-loaded library
-([`emoji-picker-element`](https://github.com/nolanlawson/emoji-picker-element))
+There's no framework, bundler, or package manager involved — just plain
+files plus two CDN-loaded libraries: Firebase
+([Authentication](https://firebase.google.com/docs/auth/web/google-signin))
+for Google sign-in, and
+[`emoji-picker-element`](https://github.com/nolanlawson/emoji-picker-element)
 for the emoji picker in the Add/Edit form.
