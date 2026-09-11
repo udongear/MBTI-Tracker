@@ -1,3 +1,3 @@
 # MBTI Tracker
 
-Description TBD
+WIP
