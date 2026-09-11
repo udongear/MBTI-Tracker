@@ -27,7 +27,7 @@ pulled from a CDN — everything else works offline.
 
 Visiting [`index.html`](index.html) while signed out redirects to
 [`login.html`](login.html); signing in with Google redirects back. A
-**Log Out** button sits next to the ⚙️ Settings button in the header.
+**Sign Out** button sits next to the ⚙️ Settings button in the header.
 
 ## Features
 
@@ -124,7 +124,7 @@ login.html          The Google sign-in screen
 style.css           All styling (dark purple/black theme, layout, modal styles)
 script.js           All app behavior: data model, rendering, sorting, modals, storage
 firebase-config.js  Firebase project config + init — fill in your own values here
-auth-guard.js       Redirects index.html to login.html when signed out; wires Log Out
+auth-guard.js       Redirects index.html to login.html when signed out; wires Sign Out
 login.js            Wires the "Continue with Google" button on login.html
 imgs/               Avatar images (per MBTI type/gender), the header logo, and favicon
 ```

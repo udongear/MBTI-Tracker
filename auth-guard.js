@@ -5,7 +5,6 @@ const appRoot = document.querySelector(".app");
 const authLoading = document.getElementById("authLoading");
 const userChip = document.getElementById("userChip");
 const userAvatar = document.getElementById("userAvatar");
-const userName = document.getElementById("userName");
 const logoutBtn = document.getElementById("logoutBtn");
 
 onAuthStateChanged(auth, (user) => {
@@ -14,9 +13,9 @@ onAuthStateChanged(auth, (user) => {
     return;
   }
 
-  userName.textContent = user.displayName || user.email || "Signed in";
   if (user.photoURL) {
     userAvatar.src = user.photoURL;
+    userAvatar.alt = user.displayName || user.email || "Signed in";
     userAvatar.hidden = false;
   }
   userChip.hidden = false;
