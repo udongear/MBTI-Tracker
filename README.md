@@ -8,7 +8,8 @@ just gates who can open the page.
 
 ## Running it
 
->> https://udongear.github.io/MBTI-Tracker/ <<
+Go here to sign in with Google and start tracking your MBTIs:
+> https://udongear.github.io/MBTI-Tracker/
 
 ## Features
 
