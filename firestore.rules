@@ -1,0 +1,13 @@
+// Paste into Firebase Console → Build → Firestore Database → Rules.
+//
+// Each signed-in user gets exactly one document, at users/{their uid}, that
+// holds their whole app state (see cloud-sync.js). Only that user may read
+// or write it — nobody can see or touch another account's data.
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}

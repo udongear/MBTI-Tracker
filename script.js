@@ -1,3 +1,5 @@
+import { initCloudSync, queueCloudPush } from "./cloud-sync.js";
+
 (() => {
   "use strict";
 
@@ -179,6 +181,54 @@
 
   function uid() {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  // ---------- cross-device sync (see cloud-sync.js) ----------
+  /** Bundles the account-specific state to mirror into Firestore. */
+  function getCloudState() {
+    return { entries, observations, relationships, subCategories, iconMode };
+  }
+
+  /** Applies a state document that arrived from another signed-in device. */
+  function applyCloudState(remote) {
+    if (!remote) return;
+
+    if (Array.isArray(remote.entries)) {
+      entries = remote.entries;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    }
+    if (remote.observations && typeof remote.observations === "object") {
+      observations = remote.observations;
+      localStorage.setItem(OBS_KEY, JSON.stringify(observations));
+    }
+    if (Array.isArray(remote.relationships)) {
+      relationships = remote.relationships;
+      localStorage.setItem(RELATIONSHIPS_KEY, JSON.stringify(relationships));
+    }
+    if (Array.isArray(remote.subCategories)) {
+      subCategories = remote.subCategories;
+      localStorage.setItem(SUBCATEGORIES_KEY, JSON.stringify(subCategories));
+    }
+    if (remote.iconMode === "emoji" || remote.iconMode === "initial") {
+      iconMode = remote.iconMode;
+      localStorage.setItem(ICON_MODE_KEY, iconMode);
+    }
+
+    // Any of the above could have changed, and we don't know which — just
+    // refresh everything that depends on this state.
+    populateRelationshipDropdown();
+    populateSubCategoryDropdown();
+    renderList();
+    renderGrid();
+    iconModeToggle.checked = iconMode === "initial";
+    if (!settingsModal.classList.contains("hidden")) {
+      relationshipManager.render();
+      subCategoryManager.render();
+    }
+    if (currentModalCode) {
+      modalMembers.innerHTML = renderModalMembers(currentModalCode);
+      modalObservations.innerHTML = renderModalObservations(currentModalCode);
+    }
   }
 
   // ---------- dom refs ----------
@@ -591,6 +641,7 @@
 
     entries = mode === "replace" ? ready : entries.concat(ready);
     saveEntries();
+    queueCloudPush();
     renderList();
     renderGrid();
     closeImportPreview();
@@ -632,6 +683,7 @@
     }
 
     saveEntries();
+    queueCloudPush();
     closeAndResetEntryModal();
     renderList();
     renderGrid();
@@ -677,6 +729,7 @@
     entries = entries.filter((en) => en.id !== id);
     if (editingId === id) closeAndResetEntryModal();
     saveEntries();
+    queueCloudPush();
     renderList();
     renderGrid();
     showToast(`Deleted ${entry.name}`);
@@ -818,6 +871,7 @@
     if (editingId && selectedIds.has(editingId)) closeAndResetEntryModal();
     selectedIds.clear();
     saveEntries();
+    queueCloudPush();
     renderList();
     renderGrid();
     showToast(`Deleted ${count} entries`);
@@ -980,6 +1034,7 @@
     if (!observations[currentModalCode]) observations[currentModalCode] = [];
     observations[currentModalCode].push(text);
     saveObservations();
+    queueCloudPush();
     observationInput.value = "";
     modalObservations.innerHTML = renderModalObservations(currentModalCode);
   });
@@ -989,6 +1044,7 @@
     if (!btn || !currentModalCode) return;
     observations[currentModalCode].splice(Number(btn.dataset.index), 1);
     saveObservations();
+    queueCloudPush();
     modalObservations.innerHTML = renderModalObservations(currentModalCode);
   });
 
@@ -1015,6 +1071,7 @@
   iconModeToggle.addEventListener("change", () => {
     iconMode = iconModeToggle.checked ? "initial" : "emoji";
     saveIconMode();
+    queueCloudPush();
     renderList();
     renderGrid();
   });
@@ -1056,6 +1113,7 @@
         refreshDropdown();
       }
       save();
+      queueCloudPush();
     });
 
     container.addEventListener("click", (e) => {
@@ -1079,6 +1137,7 @@
         renderGrid();
       }
       save();
+      queueCloudPush();
       refreshDropdown();
       render();
     });
@@ -1107,6 +1166,7 @@
   addRelationshipBtn.addEventListener("click", () => {
     relationships.push({ id: uid(), name: "New Relationship" });
     saveRelationships();
+    queueCloudPush();
     populateRelationshipDropdown();
     relationshipManager.render();
   });
@@ -1114,6 +1174,7 @@
   addSubCategoryBtn.addEventListener("click", () => {
     subCategories.push({ id: uid(), name: "New Sub-Category" });
     saveSubCategories();
+    queueCloudPush();
     populateSubCategoryDropdown();
     subCategoryManager.render();
   });
@@ -1133,4 +1194,6 @@
   populateSubCategoryDropdown();
   renderList();
   renderGrid();
+
+  initCloudSync({ getState: getCloudState, setState: applyCloudState });
 })();

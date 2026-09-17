@@ -12,11 +12,16 @@
 //   2. Authentication → Sign-in method → add "Google" as a sign-in provider.
 //   3. Authentication → Settings → Authorized domains → add whatever domain
 //      this site is served from (localhost is included by default).
+//   4. Build → Firestore Database → Create database (this is what makes an
+//      account's data follow it across devices — see cloud-sync.js). Paste
+//      the rules from firestore.rules into Firestore Database → Rules.
 //
 // See: https://firebase.google.com/docs/auth/web/google-signin
+//      https://firebase.google.com/docs/firestore/quickstart
 // ---------------------------------------------------------------------------
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCtgqUP0ErLbnVVrPfyOU570bnughSEmEY",
@@ -29,3 +34,4 @@ const firebaseConfig = {
 
 export const firebaseApp = initializeApp(firebaseConfig);
 export const auth = getAuth(firebaseApp);
+export const db = getFirestore(firebaseApp);
