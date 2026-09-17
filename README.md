@@ -8,26 +8,7 @@ just gates who can open the page.
 
 ## Running it
 
-There's nothing to build, but you do need a Firebase project for sign-in:
-
-1. Create a project at the [Firebase Console](https://console.firebase.google.com/).
-2. **Authentication → Sign-in method** → enable **Google** as a provider.
-3. **Authentication → Settings → Authorized domains** → add whatever domain
-   you'll serve this from (`localhost` is included by default).
-4. **Project settings → General → Your apps** → add a Web app and copy its
-   config into [`firebase-config.js`](firebase-config.js) (it ships with
-   placeholder values).
-
-Because Google sign-in uses a popup, the page needs to be served over
-`http(s)`, not opened directly via `file://`. Any static file server works,
-e.g. `npx serve` or `python -m http.server` from this folder, then visit
-`http://localhost:<port>/login.html`. An internet connection is needed the
-first time it loads, since Firebase and the emoji picker library are both
-pulled from a CDN — everything else works offline.
-
-Visiting [`index.html`](index.html) while signed out redirects to
-[`login.html`](login.html); signing in with Google redirects back. A
-**Sign Out** button sits next to the ⚙️ Settings button in the header.
+>> https://udongear.github.io/MBTI-Tracker/ <<
 
 ## Features
 
