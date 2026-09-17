@@ -183,6 +183,37 @@ import { initCloudSync, queueCloudPush } from "./cloud-sync.js";
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   }
 
+  /**
+   * Self-heals the Relationships/Sub-Categories catalogs (the lists behind
+   * the Settings editor and the entry-form dropdowns) against whatever
+   * values entries actually carry. An entry's relationship/subCategory is
+   * just a plain string, independent of the catalog, so the two can drift —
+   * e.g. a catalog wiped by a stale/empty cross-device sync, or a CSV import
+   * that used a name not yet in the catalog. Returns true if it changed anything.
+   */
+  function reconcileOptionCatalogs() {
+    let changed = false;
+    const relNames = new Set(relationships.map((r) => r.name));
+    const subNames = new Set(subCategories.map((s) => s.name));
+    entries.forEach((en) => {
+      if (en.relationship && !relNames.has(en.relationship)) {
+        relationships.push({ id: uid(), name: en.relationship });
+        relNames.add(en.relationship);
+        changed = true;
+      }
+      if (en.subCategory && !subNames.has(en.subCategory)) {
+        subCategories.push({ id: uid(), name: en.subCategory });
+        subNames.add(en.subCategory);
+        changed = true;
+      }
+    });
+    if (changed) {
+      saveRelationships();
+      saveSubCategories();
+    }
+    return changed;
+  }
+
   // ---------- cross-device sync (see cloud-sync.js) ----------
   /** Bundles the account-specific state to mirror into Firestore. */
   function getCloudState() {
@@ -213,6 +244,11 @@ import { initCloudSync, queueCloudPush } from "./cloud-sync.js";
       iconMode = remote.iconMode;
       localStorage.setItem(ICON_MODE_KEY, iconMode);
     }
+
+    // The remote entries may reference relationship/subCategory names this
+    // device's remote catalog doesn't have (e.g. another device imported a
+    // CSV with a new value) — patch the catalog back in and re-sync it up.
+    if (reconcileOptionCatalogs()) queueCloudPush();
 
     // Any of the above could have changed, and we don't know which — just
     // refresh everything that depends on this state.
@@ -1189,6 +1225,9 @@ import { initCloudSync, queueCloudPush } from "./cloud-sync.js";
   }
 
   // ---------- boot ----------
+  // Recover any relationship/subCategory catalog entries this device's entries
+  // still reference but the catalog itself is missing (see reconcileOptionCatalogs).
+  reconcileOptionCatalogs();
   populateMbtiDropdown();
   populateRelationshipDropdown();
   populateSubCategoryDropdown();

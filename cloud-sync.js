@@ -32,6 +32,24 @@ let setStateFn = null;
 let unsubscribeSnapshot = null;
 let pushTimer = null;
 
+/**
+ * True if a synced state object has nothing in it. Used to guard against a
+ * blank/never-used device being the first to touch this account's Firestore
+ * doc: without this check, its empty local state would either seed the cloud
+ * doc as empty, or (if another device already seeded it) get treated as an
+ * authoritative "nothing here" update — silently wiping a richer device's
+ * data on its next load. See script.js's reconcileOptionCatalogs, called from
+ * applyCloudState, for the matching recovery half of this fix.
+ */
+function isEmptyState(state) {
+  if (!state) return true;
+  const noEntries = !Array.isArray(state.entries) || state.entries.length === 0;
+  const noRelationships = !Array.isArray(state.relationships) || state.relationships.length === 0;
+  const noSubCategories = !Array.isArray(state.subCategories) || state.subCategories.length === 0;
+  const noObservations = !state.observations || Object.keys(state.observations).length === 0;
+  return noEntries && noRelationships && noSubCategories && noObservations;
+}
+
 export function initCloudSync({ getState, setState }) {
   getStateFn = getState;
   setStateFn = setState;
@@ -45,7 +63,9 @@ export function initCloudSync({ getState, setState }) {
     currentUid = user ? user.uid : null;
     if (!user) return;
 
-    const ref = doc(db, "users", user.uid);
+    const uid = user.uid;
+    const ref = doc(db, "users", uid);
+    let firstSnapshot = true;
 
     try {
       // First sign-in on this account, anywhere: no cloud doc yet, so seed
@@ -65,7 +85,23 @@ export function initCloudSync({ getState, setState }) {
         // Skip the local echo of our own pending writes — only react to
         // state that actually came from the server (i.e. another device).
         if (!snap.exists() || snap.metadata.hasPendingWrites) return;
-        setStateFn(snap.data());
+
+        const remote = snap.data();
+
+        // A blank device (e.g. a fresh install, never used before) can win
+        // the race to create/touch this account's doc while it's still
+        // empty. Don't let that wipe a device that actually has data —
+        // push this device's state up instead of applying the empty one.
+        if (firstSnapshot && isEmptyState(remote) && !isEmptyState(getStateFn())) {
+          firstSnapshot = false;
+          setDoc(doc(db, "users", uid), { ...getStateFn(), updatedAt: serverTimestamp() }).catch((e) =>
+            console.error("Cloud sync: recovery push failed", e)
+          );
+          return;
+        }
+        firstSnapshot = false;
+
+        setStateFn(remote);
       },
       (e) => console.error("Cloud sync: snapshot listener failed", e)
     );
