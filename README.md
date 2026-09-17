@@ -79,59 +79,6 @@ Visiting [`index.html`](index.html) while signed out redirects to
     over time as you research each type; add a bullet with the input box,
     remove one with its ✕. This is stored separately from your entries and
     persists across visits.
-
-## Data & storage
-
-Everything is saved in the browser's `localStorage` — nothing leaves your
-machine, and nothing is shared between browsers/devices. Relevant keys:
-
-| Key | What it holds |
-|---|---|
-| `mbtiViewer.entries` | Your list of people. |
-| `mbtiViewer.dataVersion` | A marker used to (re)seed `mbtiViewer.entries` with the built-in starter dataset in [`script.js`](script.js) the first time the app runs, or after a deliberate reset (see below). |
-| `mbtiViewer.observations` | Your per-type Observations bullets from the Grid detail popup. |
-
-**Clearing your data:** clearing the site's storage (e.g. via browser dev
-tools → Application → Local Storage, or a private/incognito window) resets
-entries back to the seed dataset and clears all Observations.
-
-**Resetting to a fresh seed:** the `DATA_VERSION` constant near the top of
-[`script.js`](script.js) controls this. Bumping its value wipes whatever's
-currently in `mbtiViewer.entries` and replaces it with the `DEFAULT_ENTRIES`
-array in that same file, the next time the page loads. This was used once to
-load an initial dataset — normal use (adding/editing/deleting through the
-UI) never touches it.
-
-## Avatars
-
-The Grid detail popup looks for avatar images in [`imgs/`](imgs) named:
-
-```
-<N>) <CODE> <M|F>.png
-```
-
-e.g. `4) INTJ M.png`, `4) INTJ F.png` — where `<N>` is the type's 1-based
-position in the fixed order ISTJ, ISFJ, INFJ, INTJ, ISTP, ISFP, INFP, INTP,
-ESTP, ESFP, ENFP, ENTP, ESTJ, ESFJ, ENFJ, ENTJ (this is the `MBTI_TYPES`
-array in [`script.js`](script.js)). Keep this naming pattern if you replace
-or add avatar images.
-
-## Project structure
-
-```
-index.html         Markup: List view, Grid view, Add/Edit modal, MBTI detail modal
-login.html          The Google sign-in screen
-style.css           All styling (dark purple/black theme, layout, modal styles)
-script.js           All app behavior: data model, rendering, sorting, modals, storage
-firebase-config.js  Firebase project config + init — fill in your own values here
-auth-guard.js       Redirects index.html to login.html when signed out; wires Sign Out
-login.js            Wires the "Continue with Google" button on login.html
-imgs/               Avatar images (per MBTI type/gender), the header logo, and favicon
-```
-
-There's no framework, bundler, or package manager involved — just plain
-files plus two CDN-loaded libraries: Firebase
-([Authentication](https://firebase.google.com/docs/auth/web/google-signin))
 for Google sign-in, and
 [`emoji-picker-element`](https://github.com/nolanlawson/emoji-picker-element)
 for the emoji picker in the Add/Edit form.
